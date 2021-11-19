@@ -342,9 +342,8 @@ class Submission(models.Model):
             "public_reference": self.public_registration_reference,
             **self.data,
         }
-        rendered_content = Template(template).render(Context(context_data))
 
-        return sanitize_content(rendered_content)
+        return Template(template).render(Context(context_data))
 
     @property
     def steps(self) -> List["SubmissionStep"]:
