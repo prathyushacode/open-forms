@@ -15,6 +15,7 @@ from rest_framework.test import APITestCase
 from openforms.appointments.tests.factories import AppointmentInfoFactory
 from openforms.payments.contrib.ogone.tests.factories import OgoneMerchantFactory
 
+from ...config.models import GlobalConfiguration
 from ..constants import SUBMISSIONS_SESSION_KEY, ProcessingResults, ProcessingStatuses
 from ..tasks import cleanup_on_completion_results
 from ..tokens import submission_status_token_generator
@@ -274,6 +275,62 @@ class SubmissionStatusExtraInformationTests(APITestCase):
             self.assertEqual(response_data["errorMessage"], "Some fields are missing.")
             self.assertEqual(response_data["confirmationPageContent"], "")
             self.assertEqual(response_data["reportDownloadUrl"], "")
+
+    def test_displaying_main_website_link_returns_main_link_through_api(self):
+        config = GlobalConfiguration.get_solo()
+        config.main_website = "http://maykinmedia.nl"
+        config.save()
+
+        submission = SubmissionFactory.create(
+            completed=True,
+            on_completion_task_ids=["some-id"],
+            form__display_main_website_link=True,
+        )
+
+        token = submission_status_token_generator.make_token(submission)
+        check_status_url = reverse(
+            "api:submission-status", kwargs={"uuid": submission.uuid, "token": token}
+        )
+
+        with patch("openforms.submissions.status.AsyncResult") as mock_AsyncResult:
+            mock_AsyncResult.return_value.state = states.SUCCESS
+
+            response = self.client.get(check_status_url)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data["status"], ProcessingStatuses.done)
+            self.assertEqual(response_data["result"], ProcessingResults.success)
+            self.assertEqual(response_data["mainWebsiteUrl"], "http://maykinmedia.nl")
+
+    def test_displaying_main_website_link_does_not_return_link_when_link_should_not_be_displayed(
+        self,
+    ):
+        config = GlobalConfiguration.get_solo()
+        config.main_website = "http://maykinmedia.nl"
+        config.save()
+
+        submission = SubmissionFactory.create(
+            completed=True,
+            on_completion_task_ids=["some-id"],
+            form__display_main_website_link=False,
+        )
+
+        token = submission_status_token_generator.make_token(submission)
+        check_status_url = reverse(
+            "api:submission-status", kwargs={"uuid": submission.uuid, "token": token}
+        )
+
+        with patch("openforms.submissions.status.AsyncResult") as mock_AsyncResult:
+            mock_AsyncResult.return_value.state = states.SUCCESS
+
+            response = self.client.get(check_status_url)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data["status"], ProcessingStatuses.done)
+            self.assertEqual(response_data["result"], ProcessingResults.success)
+            self.assertEqual(response_data["mainWebsiteUrl"], "")
 
     def test_payment_required(self):
         merchant = OgoneMerchantFactory.create()

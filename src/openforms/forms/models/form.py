@@ -79,7 +79,9 @@ class Form(models.Model):
     display_main_website_link = models.BooleanField(
         _("display main website link"),
         default=False,
-        help_text=_("Display the link to the main website on the submission confirmation page."),
+        help_text=_(
+            "Display the link to the main website on the submission confirmation page."
+        ),
     )
     can_submit = models.BooleanField(
         _("can submit"),
