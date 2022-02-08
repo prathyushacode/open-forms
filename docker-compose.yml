@@ -56,6 +56,7 @@ services:
     depends_on:
       - db
       - sdk
+      - redis
 
   nginx:
     image: nginx
