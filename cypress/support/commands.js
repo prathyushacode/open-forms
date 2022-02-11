@@ -32,7 +32,7 @@ Cypress.Commands.add("formStartButton", () => {
 
 // Find a form field by its key
 Cypress.Commands.add("formField", (fieldKey, timeout=10000) => {
-    cy.wait(400)  // Required because the DOM seems to be re-rendered
+    cy.wait(1000)
     return cy.get(`.openforms-form-control--${fieldKey}`, {timeout: timeout});
 })
 
