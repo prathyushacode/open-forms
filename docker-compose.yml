@@ -8,14 +8,20 @@ services:
     volumes:
       - ./docker-init-db.sql:/docker-entrypoint-initdb.d/init_db.sql
       - db:/var/lib/postgresql/data
+    networks:
+      - open-forms-dev
 
   redis:
     image: redis:6
+    networks:
+      - open-forms-dev
 
   sdk:
     image: openformulieren/open-forms-sdk
     ports:
     - 8001:8080
+    networks:
+      - open-forms-dev
 
   busybox:
     image: busybox
@@ -57,6 +63,8 @@ services:
     depends_on:
       - db
       - sdk
+    networks:
+      - open-forms-dev
 
   nginx:
     image: nginx
@@ -67,6 +75,8 @@ services:
       - "9000:80"
     depends_on:
       - web
+    networks:
+      - open-forms-dev
 
   celery:
     build: .
@@ -76,6 +86,8 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - open-forms-dev
 
   celery-beat:
     build: .
@@ -85,6 +97,8 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - open-forms-dev
 
   celery-flower:
     build: .
@@ -96,7 +110,13 @@ services:
     depends_on:
       - redis
       - celery
+    networks:
+      - open-forms-dev
 
 volumes:
   db:
   private_media:
+
+networks:
+  open-forms-dev:
+    name: open-forms-dev
