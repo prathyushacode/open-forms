@@ -26,6 +26,7 @@ familiarize yourself with the design principles.
    sdk/index
    plugins/index
    manual_testing
+   integration_testing
    i18n
    csp
    npm
