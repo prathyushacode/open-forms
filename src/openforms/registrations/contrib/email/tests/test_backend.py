@@ -649,4 +649,4 @@ class EmailBackendTests(HTMLAssertMixin, TestCase):
         message = mail.outbox[0]
 
         message_html = message.alternatives[0][0]
-        self.assertIn("Backend, Frontend", message_html)
+        self.assertIn("Backend; Frontend", message_html)
